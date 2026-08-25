@@ -10,8 +10,16 @@ import Dictionary from './pages/Dictionary'
 import Respond from './pages/Respond'
 
 export default function App() {
-  const { isAuthed, data } = useApp()
+  const { isAuthed, data, loading } = useApp()
   const onboarded = data?.onboarded
+
+  if (loading) {
+    return (
+      <div style={{ display: 'grid', placeItems: 'center', height: '100vh', fontFamily: 'var(--body)', color: 'var(--ink-soft)' }}>
+        Loading…
+      </div>
+    )
+  }
 
   return (
     <Routes>

@@ -1,115 +1,122 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { supabase } from '../supabaseClient'
 
 const AppContext = createContext(null)
 export const useApp = () => useContext(AppContext)
 
-// ---- storage helpers -------------------------------------------------------
-const USERS_KEY = 'memotime.users'
-const SESSION_KEY = 'memotime.session'
-const dataKey = (email) => `memotime.data.${email.toLowerCase()}`
-
-const readJSON = (key, fallback) => {
-  try {
-    const raw = localStorage.getItem(key)
-    return raw ? JSON.parse(raw) : fallback
-  } catch {
-    return fallback
-  }
-}
-const writeJSON = (key, value) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-  } catch {
-    /* storage full or unavailable — ignore for this prototype */
-  }
-}
-
 const blankData = () => ({
   onboarded: false,
-  known: [], // array of Dutch words the user knows
-  // progress: { [situationId]: { makkelijk: bool, gemiddeld: bool, moeilijk: bool } }
+  known: [],
   progress: {},
 })
 
-// ---- provider --------------------------------------------------------------
+// Fetch this user's row, or create a blank one on their very first login.
+async function fetchOrCreateRow(userId) {
+  const { data, error } = await supabase
+    .from('progress')
+    .select('onboarded, known, progress')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (error) throw error
+  if (data) return data
+
+  const fresh = blankData()
+  const { error: insertError } = await supabase
+    .from('progress')
+    .insert({ user_id: userId, ...fresh })
+  if (insertError) throw insertError
+  return fresh
+}
+
 export function AppProvider({ children }) {
-  const [email, setEmail] = useState(() => readJSON(SESSION_KEY, null))
-  const [data, setData] = useState(() =>
-    email ? readJSON(dataKey(email), blankData()) : null
-  )
+  const [session, setSession] = useState(null)
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  // persist data whenever it changes
   useEffect(() => {
-    if (email && data) writeJSON(dataKey(email), data)
-  }, [email, data])
-
-  const register = (emailInput, password) => {
-    const e = emailInput.trim().toLowerCase()
-    if (!e || !password) return { ok: false, error: 'Enter an email and password.' }
-    const users = readJSON(USERS_KEY, {})
-    if (users[e]) return { ok: false, error: 'That email is already registered. Try logging in.' }
-    users[e] = { password } // NOTE: plaintext, prototype only — see README.
-    writeJSON(USERS_KEY, users)
-    const fresh = blankData()
-    writeJSON(dataKey(e), fresh)
-    writeJSON(SESSION_KEY, e)
-    setEmail(e)
-    setData(fresh)
-    return { ok: true }
-  }
-
-  const login = (emailInput, password) => {
-    const e = emailInput.trim().toLowerCase()
-    const users = readJSON(USERS_KEY, {})
-    if (!users[e]) return { ok: false, error: 'No account with that email. Register first.' }
-    if (users[e].password !== password) return { ok: false, error: 'Wrong password.' }
-    writeJSON(SESSION_KEY, e)
-    setEmail(e)
-    setData(readJSON(dataKey(e), blankData()))
-    return { ok: true }
-  }
-
-  const logout = () => {
-    localStorage.removeItem(SESSION_KEY)
-    setEmail(null)
-    setData(null)
-  }
-
-  // ---- learning mutations --------------------------------------------------
-  const addKnownWords = (words) => {
-    setData((d) => {
-      if (!d) return d
-      const set = new Set(d.known)
-      words.forEach((w) => set.add(w))
-      return { ...d, known: [...set] }
+    // Restore session on load (this is what makes it work across devices —
+    // Supabase's own session, not anything stored per-browser).
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setSession(session)
+      if (session) setData(await fetchOrCreateRow(session.user.id))
+      setLoading(false)
     })
+
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setSession(session)
+      if (session) {
+        setData(await fetchOrCreateRow(session.user.id))
+      } else {
+        setData(null)
+      }
+    })
+
+    return () => sub.subscription.unsubscribe()
+  }, [])
+
+  // Write straight to the database, keyed by the logged-in user's id.
+  const persist = async (next) => {
+    setData(next)
+    if (!session) return
+    await supabase
+      .from('progress')
+      .update({
+        onboarded: next.onboarded,
+        known: next.known,
+        progress: next.progress,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', session.user.id)
+  }
+
+  const register = async (emailInput, password) => {
+    const email = emailInput.trim().toLowerCase()
+    const { error } = await supabase.auth.signUp({ email, password })
+    if (error) return { ok: false, error: error.message }
+    return { ok: true }
+  }
+
+  const login = async (emailInput, password) => {
+    const email = emailInput.trim().toLowerCase()
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) return { ok: false, error: error.message }
+    return { ok: true }
+  }
+
+  const logout = async () => {
+    await supabase.auth.signOut()
+  }
+
+  const addKnownWords = (words) => {
+    if (!data) return
+    const set = new Set(data.known)
+    words.forEach((w) => set.add(w))
+    persist({ ...data, known: [...set] })
   }
 
   const finishOnboarding = (knownWords) => {
-    setData((d) => {
-      if (!d) return d
-      const set = new Set(d.known)
-      knownWords.forEach((w) => set.add(w))
-      return { ...d, onboarded: true, known: [...set] }
-    })
+    if (!data) return
+    const set = new Set(data.known)
+    knownWords.forEach((w) => set.add(w))
+    persist({ ...data, onboarded: true, known: [...set] })
   }
 
   const completeLevel = (situationId, levelKey, words) => {
-    setData((d) => {
-      if (!d) return d
-      const prog = { ...(d.progress || {}) }
-      prog[situationId] = { ...(prog[situationId] || {}), [levelKey]: true }
-      const set = new Set(d.known)
-      words.forEach((w) => set.add(w))
-      return { ...d, progress: prog, known: [...set] }
-    })
+    if (!data) return
+    const prog = { ...(data.progress || {}) }
+    prog[situationId] = { ...(prog[situationId] || {}), [levelKey]: true }
+    const set = new Set(data.known)
+    words.forEach((w) => set.add(w))
+    persist({ ...data, progress: prog, known: [...set] })
   }
 
   const value = useMemo(
     () => ({
-      email,
+      email: session?.user?.email || null,
       data,
-      isAuthed: !!email,
+      isAuthed: !!session,
+      loading,
       register,
       login,
       logout,
@@ -117,7 +124,7 @@ export function AppProvider({ children }) {
       finishOnboarding,
       completeLevel,
     }),
-    [email, data]
+    [session, data, loading]
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
