@@ -43,20 +43,16 @@ export default function Auth() {
 
       <div className="auth__grid">
         <section className="auth__pitch">
-          <p className="eyebrow">Dutch, for the moments that matter</p>
+          <p className="eyebrow">Onze woordenlijst</p>
           <h1>
-            Learn the words you'll actually
+            Our shared Dutch word list —
             <br />
-            need — <em>in the situation you'll need them.</em>
+            <em>add words, then test yourself.</em>
           </h1>
-          <p className="auth__lede">
-            memotime builds around real situations: the bus, the café, the doctor.
-            Start with what's most common, and earn your way to fluent.
-          </p>
           <ul className="auth__points">
-            <li><b>Attained levels.</b> Clear Makkelijk to unlock Gemiddeld, then Moeilijk.</li>
-            <li><b>Hear everything.</b> Every word and sentence has a pronounce key.</li>
-            <li><b>Speak back.</b> A separate Respond tab where you reply for yourself.</li>
+            <li><b>Add in bulk.</b> Paste a whole list of Dutch–English pairs at once.</li>
+            <li><b>Shared.</b> Everyone who logs in sees the same list.</li>
+            <li><b>Practise both ways.</b> Dutch → English and English → Dutch.</li>
           </ul>
         </section>
 
@@ -110,15 +106,15 @@ export default function Auth() {
               {submitting
                 ? 'One moment…'
                 : mode === 'register'
-                ? 'Create account & start quiz'
+                ? 'Create account'
                 : 'Log in'}
             </button>
           </form>
 
           <p className="auth__note">
             {mode === 'register'
-              ? 'New here? A quick quiz sets your starting vocabulary.'
-              : 'Welcome back — pick up where you left off, on any device.'}
+              ? 'New here? Create an account to see the shared list.'
+              : 'Welcome back.'}
           </p>
         </section>
       </div>

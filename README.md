@@ -1,54 +1,23 @@
 # memotime
 
-Learn Dutch through real situations. A React (Vite) web app — deploys to Vercel as-is.
+A shared Dutch ↔ English word list with translation practice. React (Vite) + Supabase, deploys to Vercel.
 
-## What's inside
+## Tabs
 
-- **Login / Register** landing page.
-- **First-run mini-quiz** that seeds your known words objectively (pick the English meaning; correct picks are added to your vocabulary).
-- **Situations** (bus, café, doctor, bakery, work, …) each with three **attained** levels — clear *Makkelijk* to unlock *Gemiddeld*, then *Moeilijk*. Each situation shows a progress track.
-- **My words** — everything you've collected.
-- **Dictionary** — every word and phrase with English translation and a **pronounce key**.
-- **Respond** tab — a Dutch line is spoken to you; you type your own reply, then reveal a model answer.
+- **Words** — paste pairs in bulk (one per line, Dutch first: `de hond - the dog`, `lopen = to walk`, tab-separated from a spreadsheet works too). The list is shared: everyone who logs in sees the same words, live.
+- **NL → EN** — you get a Dutch word, type the English.
+- **EN → NL** — you get an English word, type the Dutch.
 
-Every Dutch word and sentence, everywhere in the app, has a translation and a pronunciation button (browser text-to-speech, Dutch voice).
+Answer checking ignores case, accents, punctuation and leading articles (`de`, `het`, `the`, `to`…). Use `/` for several accepted answers (`huis - house / home`). Small typos count as right but are flagged; "I was right" overrules a wrong verdict.
 
-## Run it locally
+## Default words
 
-Requires Node 18+.
+Built-in words live in `src/data/defaultWords.js` and are shown to everyone alongside the ones added in the app.
 
-```bash
-npm install
-npm run dev
-```
+## Setup
 
-Open the URL Vite prints (usually http://localhost:5173).
+1. In Supabase → SQL Editor, run `supabase/words.sql` once (creates the shared `words` table).
+2. `.env.local` (and Vercel's environment variables) need `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
+3. `npm install && npm run dev`.
 
-## Deploy to Vercel
-
-1. Push this folder to a GitHub repo (or drag it into Vercel).
-2. Import the repo in Vercel. It auto-detects Vite:
-   - Build command: `npm run build`
-   - Output directory: `dist`
-3. Deploy. `vercel.json` already handles single-page-app routing so refreshes on any tab work.
-
-## Pronunciation note
-
-Audio uses the browser's built-in Web Speech API. Chrome and Edge include a Dutch voice out of the box; on some systems Safari/Firefox may fall back to another voice or none. Nothing to configure.
-
-## Prototype notes (what to upgrade for real users)
-
-Accounts and progress are stored in the browser's `localStorage`, so data lives per-device and passwords are **not** securely stored — fine for testing, not for production. To make it real, add a backend (e.g. Supabase or a small API) for auth and to sync each user's known words and progress. The Respond tab currently self-checks against a model answer; it can be upgraded to grade free-form replies with the Anthropic API.
-
-## Project structure
-
-```
-src/
-  data/         situations, onboarding quiz, respond prompts (all the Dutch content)
-  context/      AppContext — auth + progress, persisted to localStorage
-  hooks/        useSpeech — Dutch text-to-speech
-  components/   Layout, WordCard, SpeakButton, ProgressTrack
-  pages/        Auth, Onboarding, Dashboard, SituationDetail, KnownWords, Dictionary, Respond
-```
-
-To add a situation, add an entry to `src/data/situations.js` — the dashboard, dictionary and checks pick it up automatically.
+Deploy: push to GitHub and import in Vercel (build `npm run build`, output `dist`). `vercel.json` handles SPA routing.

@@ -1,25 +1,23 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
 const tabs = [
-  { to: '/app', label: 'Situations', end: true },
-  { to: '/app/practice', label: 'Respond' },
-  { to: '/app/words', label: 'My words' },
-  { to: '/app/dictionary', label: 'Dictionary' },
+  { to: '/', label: 'Words', end: true },
+  { to: '/nl-en', label: 'NL → EN' },
+  { to: '/en-nl', label: 'EN → NL' },
 ]
 
 export default function Layout() {
   const { email, logout } = useApp()
-  const navigate = useNavigate()
 
   return (
     <div className="shell">
       <header className="topbar">
         <div className="topbar__inner">
-          <button className="brand" onClick={() => navigate('/app')} aria-label="memotime home">
+          <NavLink to="/" className="brand" aria-label="memotime home">
             <span className="brand__mark">m</span>
             <span className="brand__word">memotime</span>
-          </button>
+          </NavLink>
 
           <nav className="tabs" aria-label="Primary">
             {tabs.map((t) => (
