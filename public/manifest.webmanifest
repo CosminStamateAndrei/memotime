@@ -1,0 +1,10 @@
+{
+  "name": "memotime",
+  "short_name": "memotime",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#14171c",
+  "theme_color": "#2b4c9b",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

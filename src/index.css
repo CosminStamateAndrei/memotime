@@ -180,7 +180,7 @@ button { font: inherit; color: inherit; }
 .shell { min-height: 100vh; display: flex; flex-direction: column; }
 .topbar { background: var(--bar); color: #eef1f8; position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--line); }
 .topbar__inner { max-width: var(--wrap); margin: 0 auto; padding: 0.6rem 16px; display: flex; align-items: center; gap: 1rem; }
-.brand { text-decoration: none; display: flex; align-items: center; gap: 0.55rem; color: inherit; }
+.brand { text-decoration: none; border: none; background: none; padding: 0; cursor: pointer; display: flex; align-items: center; gap: 0.55rem; color: inherit; }
 .brand__mark {
   width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center;
   background: var(--mark); color: #1b325f; font-family: var(--display); font-weight: 800; font-size: 1.1rem;
@@ -189,6 +189,7 @@ button { font: inherit; color: inherit; }
 
 .tabs { display: flex; gap: 0.25rem; flex: 1; }
 .tab {
+  border: none; background: none; cursor: pointer; font-family: var(--body);
   font-size: 0.9rem; font-weight: 600; text-decoration: none; color: var(--bar-text);
   padding: 0.45rem 0.75rem; border-radius: var(--r-sm); white-space: nowrap;
   display: flex; align-items: center; gap: 0.4rem;
