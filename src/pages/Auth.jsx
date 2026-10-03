@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useApp } from '../context/AppContext'
+import ThemeToggle from '../components/ThemeToggle'
 
 export default function Auth() {
   const { login, register } = useApp()
@@ -33,12 +34,15 @@ export default function Auth() {
 
   return (
     <div className="auth">
-      <div className="auth__brand">
-        <div className="auth__mark">m</div>
-        <div>
-          <div className="auth__name">memotime</div>
-          <div className="auth__tag">Leer Nederlands, één gesprek per keer.</div>
+      <div className="auth__top">
+        <div className="auth__brand">
+          <div className="auth__mark">m</div>
+          <div>
+            <div className="auth__name">memotime</div>
+            <div className="auth__tag">Onze Nederlandse woordenlijst</div>
+          </div>
         </div>
+        <ThemeToggle />
       </div>
 
       <div className="auth__grid">

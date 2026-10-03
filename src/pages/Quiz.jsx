@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import { checkAnswer, normalize, shuffle } from '../lib/answers'
+import { checkAnswer, shuffle } from '../lib/answers'
 import SpeakButton from '../components/SpeakButton'
 
 // direction: 'nl-en' (see Dutch, type English) or 'en-nl' (see English, type Dutch).
@@ -15,7 +15,7 @@ export default function Quiz({ direction }) {
   const cards = useMemo(() => {
     const byPrompt = new Map()
     for (const w of words) {
-      const k = normalize(w[from], from)
+      const k = w[from].trim().toLowerCase()
       if (!byPrompt.has(k)) byPrompt.set(k, { prompt: w[from], answers: [], nl: [] })
       const c = byPrompt.get(k)
       c.answers.push(w[to])

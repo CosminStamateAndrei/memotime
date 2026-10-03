@@ -4,6 +4,7 @@ import Layout from './components/Layout'
 import Auth from './pages/Auth'
 import Words from './pages/Words'
 import Quiz from './pages/Quiz'
+import Flashcards from './pages/Flashcards'
 
 export default function App() {
   const { isAuthed, loading } = useApp()
@@ -15,6 +16,7 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<Words />} />
+        <Route path="cards" element={<Flashcards />} />
         <Route path="nl-en" element={<Quiz key="nl-en" direction="nl-en" />} />
         <Route path="en-nl" element={<Quiz key="en-nl" direction="en-nl" />} />
       </Route>

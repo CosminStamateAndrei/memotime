@@ -3,7 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#2b4c9b" />
+    <script>
+      try {
+        var t = localStorage.getItem('theme')
+        if (t) document.documentElement.dataset.theme = t
+      } catch (e) {}
+    </script>
     <meta name="description" content="memotime — shared Dutch word list and translation practice." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
