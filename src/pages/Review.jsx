@@ -109,6 +109,13 @@ export default function Review() {
                 className={`input quiz__input ${result ? `is-${result}` : ''}`}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  // Enter on an empty box = "Don't know"; with text it submits as usual.
+                  if (e.key === 'Enter' && !result && !input.trim()) {
+                    e.preventDefault()
+                    setResult('wrong')
+                  }
+                }}
                 placeholder={to === 'en' ? 'Type the English…' : 'Typ het Nederlands…'}
                 readOnly={!!result}
                 autoComplete="off"
