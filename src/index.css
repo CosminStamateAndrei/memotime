@@ -195,6 +195,11 @@ button { font: inherit; color: inherit; }
   display: flex; align-items: center; gap: 0.4rem;
 }
 .tab svg { width: 18px; height: 18px; }
+.tab { position: relative; }
+.tab__count {
+  font-family: var(--mono); font-size: 0.62rem; font-weight: 700; line-height: 1;
+  background: var(--bad); color: #fff; border-radius: 999px; padding: 0.15rem 0.35rem; min-width: 1.1rem; text-align: center;
+}
 .tab:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
 .tab.active { color: var(--accent-text); background: var(--surface); }
 
@@ -309,23 +314,40 @@ code { font-family: var(--mono); font-size: 0.85em; background: var(--paper-2); 
 .modes button { border: none; background: transparent; font-weight: 600; font-size: 0.82rem; padding: 0.45rem 0.7rem; border-radius: 4px; cursor: pointer; color: var(--ink-soft); }
 .modes button.is-active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
 
+.swipe { margin-top: 0.8rem; overflow: hidden; padding: 6px; margin-inline: -6px; }
 .flash {
-  width: 100%; min-height: 260px; padding: 1.6rem 1.2rem; cursor: pointer; text-align: center;
-  display: grid; place-items: center; gap: 0.8rem; user-select: none;
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow);
+  position: relative; width: 100%; min-height: 260px; padding: 1.6rem 1.2rem; cursor: grab; text-align: center;
+  display: grid; place-items: center; gap: 0.8rem; user-select: none; -webkit-user-select: none;
+  touch-action: pan-y; /* horizontal drags are ours, vertical still scrolls the page */
+  background: var(--surface); border: 2px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow);
+  transition: transform 0.2s ease, opacity 0.2s ease, border-color 0.15s ease;
 }
+.flash.is-dragging { transition: none; cursor: grabbing; }
+.flash__stamp {
+  position: absolute; top: 14px; font-family: var(--mono); font-weight: 700; font-size: 0.8rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.3rem 0.6rem; border: 2px solid; border-radius: 6px; pointer-events: none;
+}
+.flash__stamp--good { left: 14px; color: var(--good); transform: rotate(-8deg); }
+.flash__stamp--bad { right: 14px; color: var(--bad); transform: rotate(8deg); }
+.flash__help { text-align: center; font-size: 0.78rem; color: var(--ink-soft); margin-top: 0.8rem; }
+.btn--good { background: var(--good-bg); color: var(--good); border-color: var(--good); }
+.btn--bad { background: var(--bad-bg); color: var(--bad); border-color: var(--bad); }
+.btn--good:hover, .btn--bad:hover { filter: brightness(1.08); }
+.center-text { text-align: center; }
+.page-title { font-size: clamp(1.6rem, 3.5vw, 2.2rem); }
 .flash:hover { border-color: var(--accent); }
 .flash__lang { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
 .flash__front { font-family: var(--display); font-weight: 700; font-size: clamp(1.8rem, 8vw, 2.8rem); letter-spacing: -0.02em; overflow-wrap: anywhere; }
 .flash__back { font-size: clamp(1.15rem, 4.5vw, 1.5rem); color: var(--accent-text); font-weight: 600; overflow-wrap: anywhere; }
 .flash__hint { font-size: 0.85rem; color: var(--ink-soft); }
 .flash__line { display: flex; align-items: center; justify-content: center; gap: 0.6rem; flex-wrap: wrap; }
-.flash__nav { display: grid; grid-template-columns: 1fr 2fr; gap: 0.7rem; margin-top: 1rem; }
+.flash__nav { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-top: 1rem; }
 
 /* ============================================================
    PHONE
    ============================================================ */
 @media (max-width: 860px) {
+  .topbar__email { display: none; }
   .auth__grid { grid-template-columns: 1fr; gap: 1.8rem; }
 }
 
@@ -339,9 +361,10 @@ code { font-family: var(--mono); font-size: 0.85em; background: var(--paper-2); 
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
     background: var(--bar); border-top: 1px solid var(--line);
     padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px;
   }
-  .tab { flex-direction: column; gap: 2px; font-size: 0.72rem; padding: 0.45rem 0.2rem; justify-content: center; min-height: 52px; }
+  .tab__count { position: absolute; top: 3px; right: 50%; margin-right: -22px; }
+  .tab { flex-direction: column; gap: 2px; font-size: 0.68rem; padding: 0.45rem 0.2rem; justify-content: center; min-height: 52px; }
   .tab svg { width: 22px; height: 22px; }
   .page { padding: 1.2rem 16px calc(5.5rem + env(safe-area-inset-bottom)); }
 

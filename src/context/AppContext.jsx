@@ -5,7 +5,11 @@ import { defaultWords } from '../data/defaultWords'
 const AppContext = createContext(null)
 export const useApp = () => useContext(AppContext)
 
-const DEFAULTS = defaultWords.map(([nl, en], i) => ({
+// Progress is keyed by the Dutch text, so it survives edits to the English
+// side and doesn't depend on a word's position in the default list.
+export const wordKey = (w) => w.nl.trim().toLowerCase()
+
+const DEFAULTS =defaultWords.map(([nl, en], i) => ({
   id: `default-${i}`,
   nl,
   en,
@@ -64,6 +68,48 @@ export function AppProvider({ children }) {
 
   const words = useMemo(() => [...dbWords, ...DEFAULTS], [dbWords])
 
+  // ---- personal flashcard progress: { [wordKey]: { review, known } } ----
+  const [progress, setProgress] = useState({})
+  const [progressError, setProgressError] = useState('')
+
+  useEffect(() => {
+    if (!session) {
+      setProgress({})
+      return
+    }
+    supabase
+      .from('card_progress')
+      .select('word_key, review, known')
+      .then(({ data, error }) => {
+        if (error) return setProgressError(error.message)
+        setProgressError('')
+        setProgress(Object.fromEntries(data.map((r) => [r.word_key, { review: r.review, known: r.known }])))
+      })
+  }, [session])
+
+  const saveProgress = async (word, next) => {
+    const key = wordKey(word)
+    setProgress((p) => ({ ...p, [key]: next }))
+    const { error } = await supabase.from('card_progress').upsert(
+      { user_id: session.user.id, word_key: key, ...next, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id,word_key' }
+    )
+    setProgressError(error ? error.message : '')
+  }
+
+  const getProgress = (word) => progress[wordKey(word)] || { review: false, known: 0 }
+
+  // Swiped right: seen less often. Swiped left: into the review pile.
+  const markCard = (word, knew) => {
+    const p = getProgress(word)
+    saveProgress(word, knew ? { review: p.review, known: p.known + 1 } : { review: true, known: 0 })
+  }
+
+  // Passed in the review test: out of the pile.
+  const passReview = (word) => saveProgress(word, { review: false, known: getProgress(word).known })
+
+  const reviewWords = useMemo(() => words.filter((w) => progress[wordKey(w)]?.review), [words, progress])
+
   const addWords = async (pairs) => {
     const rows = pairs.map(({ nl, en }) => ({ nl, en, added_by: session?.user?.email || null }))
     const { error } = await supabase.from('words').insert(rows)
@@ -100,6 +146,11 @@ export function AppProvider({ children }) {
     wordsLoaded,
     addWords,
     deleteWord,
+    getProgress,
+    markCard,
+    passReview,
+    reviewWords,
+    progressError,
     register,
     login,
     logout,
